@@ -1166,12 +1166,17 @@ const getExerciseBodyFromRequest = async (req) => {
   }
 
   if (demoVideoFiles.length > 0) {
+    const muteVideo = parseBoolean(
+      getField(req.body || {}, ["muteVideo", "stripAudio", "muteAudio"]).value,
+      "muteVideo"
+    );
+
     payload = {
       ...(payload || {}),
       demoVideos: await uploadMediaFilesToR2(demoVideoFiles, {
         folder: DEMO_VIDEO_FOLDER,
         resourceType: "video",
-        stripAudio: true,
+        stripAudio: muteVideo === true,
         failureMessage: "Failed to upload demo videos to storage.",
       }),
     };

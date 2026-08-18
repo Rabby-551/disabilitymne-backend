@@ -10,11 +10,6 @@ const asString = (value) => {
   return String(value).trim();
 };
 
-const isVideoStripAudioEnabled = () => {
-  const flag = asString(process.env.STRIP_EXERCISE_VIDEO_AUDIO).toLowerCase();
-  return flag !== "false" && flag !== "0" && flag !== "no";
-};
-
 let ffmpegAvailabilityPromise = null;
 
 const isFfmpegAvailable = async () => {
@@ -71,24 +66,22 @@ const runFfmpegStripAudio = async (inputPath, outputPath) => {
 
 /**
  * Removes audio tracks from a local video file before upload.
- * Returns the original path when stripping is disabled or ffmpeg is unavailable.
+ * Returns the original path when ffmpeg is unavailable.
  */
 export const stripAudioFromVideoFile = async (inputPath) => {
   const normalizedInputPath = asString(inputPath);
-  if (!normalizedInputPath || !isVideoStripAudioEnabled()) {
+  if (!normalizedInputPath) {
     return { outputPath: normalizedInputPath, audioStripped: false };
   }
 
   if (!(await isFfmpegAvailable())) {
-    console.warn("[videoProcessing] ffmpeg is not available; uploading video without audio stripping.");
-    return { outputPath: normalizedInputPath, audioStripped: false };
+    throw new Error("ffmpeg is not installed on the server. Install ffmpeg to mute uploaded videos.");
   }
 
   const outputPath = buildProcessedOutputPath(normalizedInputPath);
   const success = await runFfmpegStripAudio(normalizedInputPath, outputPath);
   if (!success) {
-    console.warn("[videoProcessing] Failed to strip audio; uploading original video file.");
-    return { outputPath: normalizedInputPath, audioStripped: false };
+    throw new Error("Failed to mute the uploaded video. Please try a different video file.");
   }
 
   return { outputPath, audioStripped: true };

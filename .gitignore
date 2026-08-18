@@ -4,5 +4,8 @@ uploads
 logs
 keys
 .DS_Store
-.env
 *.p8
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+config.bat
